@@ -23,7 +23,7 @@ library("tidyverse")
 
 
 ###################################Getting movebank-data##########################
-loginStored <- movebankLogin(username="XXXX", password="XXXX") #you need create add your username and password and have "move" package
+loginStored <- movebankLogin(username="XXXX", password="XXXX") #you need to add your username and password and have "move" package
 wholestudy<-getMovebankData(study="Movement ecology of the jaguar in the largest floodplain of the world, the Brazilian Pantanal",
                             login=loginStored, removeDuplicatedTimestamps=TRUE)#download everything
 wholestudy.df <- as(wholestudy, "data.frame") #change the movestack to a dataframe for easier manipulation
@@ -87,8 +87,6 @@ crs(datapointsjagr)
 
 # Load raster layers
 # Better to have rasters clipped to study area with same extent and resolution 
-# I did this in GIS software (ArcGISPro is faster)
-
 elevation <- raster("Pantanal_DEM_final_mcp.tif")
 wetland <- raster("Pantanal_wetland_final_mcp.tif")
 distance_river <- raster("Pantanal_Dist_hydro_mcp.tif")
@@ -201,76 +199,6 @@ hist(data.rsf$dist_river)
 hist(data.rsf$human_footprint)
 
 
-#check for multi-collinearity 
-#scatterplot
-jagcor <- data.rsf[4:8]
-
-#renaming the layers
-library(dplyr)
-jagCOR <- jagcor %>%
-  rename("Elevation"= elevation,
-         "Wetland"= wetland,
-         "Distance to roads"= dist_road,
-         "Distance to rivers"= dist_river,
-         "Human Footprint"= human_footprint,
-         
-  )
-
-pairs(jagCOR, pch= 8, col= c("red", "pink", "blue", "green", "orange"), main="Pearson’s correlation matrix")
-
-##Test for multicollinearity
-library(corrplot) 
-corrplot(corr = cor(jagCOR), 
-         addCoef.col = "black", #color of coefficient
-         number.cex = 0.8,   #front size of coefficient
-         number.digits = 1,  #No.decimal digit of coefficient
-         tl.cex= 0.7,       #front size of text/variables labels
-         tl.col = "chocolate4",  #change the color of the label
-         cl.cex= 0.6,       #front size of scale of coefficient
-         diag= F,
-         bg= "grey90",      #color of the plot background(cant believe UP! 13th Sept22) #bigger the no. lighter the shade
-         outline = "white",
-         addgrid.col = "white",
-         mar = c(0.5,0.5,0.5,0.5),
-         col = COL2('RdYlBu'))
-
-
-library("metan") #Using this package for p-value
-k <- corr_coef(jagCOR) #gives nice output with table
-k
-plot(k,
-     digits.cor = 2,
-     digits.pval = 3,
-     col.low = "red",
-     col.mid = "white",
-     col.high = "blue",
-     show = "signif")
-
-
-#while using rcorr, x = matrix, gives p-value as well
-library(Hmisc)
-mat <- as.matrix(jagCOR)
-JagCORR <- rcorr(mat, type="pearson")
-P.value <- JagCORR$P
-
-#p-value
-p <- corrplot(P.value, 
-         addCoef.col = "black",  #color of coefficient
-         number.cex = 0.8,       #front size of coefficient
-         number.digits = 3,      #No.decimal digit of coefficient
-         tl.cex= 0.7,            #front size of text/variables labels
-         tl.col = "chocolate4",  #change the color of the label
-         cl.cex= 0.6,            #front size of scale of coefficient
-         diag= F,
-         insig='p-value',
-         bg= "grey90",           #color of the plot background, #bigger the no. lighter the shade
-         outline = "white",
-         addgrid.col = "white",
-         mar = c(0.5,0.5,0.5,0.5),
-         col = COL2('RdYlBu'))
-p
-
-
 # Create a copy
 data.rsf2 <- data.rsf
 
@@ -308,28 +236,6 @@ library(sjPlot) #its ratio of event/ not event log(p/1-p)
 plot_model(rsf.fit9, type="est", show.intercept=F, show.p=T, show.values=T, vline.color="grey20") # plots odds ratio
 plot_model(rsf.fit9, type="eff", grid=T) # produces relationship plots
 summary(rsf.fit9) #top model
-
-
-#present the result in table
-library(kableExtra)
-tab <- model_list %>%
-  kbl(caption = "Table 1. Comparing the Jaguar RSF models") %>%
-  kable_classic(full_width = T, html_font = "Cambria") 
-
-webshot::install_phantomjs()
-save_kable(tab, file = "tab.png", self_contained = T)
-
-
-# Extract the coefficient table
-model_summary <- summary(rsf.fit9)
-coefficient_table <- coef(model_summary)
-Confintr <- confint(rsf.fit9) #include SE:P
-top.model <- cbind(coefficient_table,Confintr)
-
-#present the result in table
-top.model %>%
-  kbl(caption = "Table 2. Coefficient Table of Top Model (RSF)") %>%
-  kable_classic(full_width =T , html_font = "Cambria") 
 
 
 # Make some plots

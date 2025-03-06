@@ -23,7 +23,7 @@ library("tidyverse")
 
 
 ###################################Getting movebank-data##########################
-loginStored <- movebankLogin(username="Kelchoki", password="Uchicha_77") #you need "move" package
+loginStored <- movebankLogin(username="XXXX", password="XXXX") #you need create add your username and password and have "move" package
 wholestudy<-getMovebankData(study="Movement ecology of the jaguar in the largest floodplain of the world, the Brazilian Pantanal",
                             login=loginStored, removeDuplicatedTimestamps=TRUE)#download everything
 wholestudy.df <- as(wholestudy, "data.frame") #change the movestack to a dataframe for easier manipulation
